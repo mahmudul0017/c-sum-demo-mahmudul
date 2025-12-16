@@ -1,29 +1,40 @@
-name: Summation CI/CD
+name: C CI/CD Pipeline
+cat > .github/workflows/ci.yml << 'EOF'
 
 on:
   push:
     branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
 
 jobs:
-  build-and-test:
+  ci-job:
     runs-on: ubuntu-latest
+
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
+    - name: Checkout source code
+      uses: actions/checkout@v4
 
-      - name: Install build tools
-        run: sudo apt-get update && sudo apt-get install -y build-essential
+    - name: Install GCC
+      run: |
+        sudo apt update
+        sudo apt install gcc -y
 
-      - name: Build project
-        run: make build
+    - name: Build project
+      run: |
+        bash build.sh
 
-      - name: Run tests
-        run: make test
+    - name: Run unit tests
+      run: |
+        ./build/test_app
 
-      - name: Upload artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: summation-binary
-          path: sum
+    - name: Upload build artifact
+      uses: actions/upload-artifact@v4
+      with:
+        name: c-app-artifact
+        path: build/app
+
+    - name: Simulated Deploy
+      env:
+        DEPLOY_API_KEY: ${{ secrets.DEPLOY_API_KEY }}
+      run: |
+        echo "Deploying application using API Key: $DEPLOY_API_KEY"
+EOF
